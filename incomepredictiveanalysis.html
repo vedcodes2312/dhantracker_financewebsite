@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Predictor with Predictive Analysis</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h2 {
+            color: #3a3a3a;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        #question {
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-align: center;
+            color: #495057;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 30px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        #result {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+            color: #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .progress {
+            height: 10px;
+            margin-bottom: 20px;
+        }
+        .restart-btn {
+            display: none;
+            margin: 20px auto;
+            padding: 10px 20px;
+        }
+        .analysis-container {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .prediction-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #28a745;
+            background-color: #fff;
+        }
+        .recommendation {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .data-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .data-table th, .data-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Income Predictor with Predictive Analysis</h2>
+        <div class="progress">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div id="question"></div>
+        <div class="btn-container">
+            <button id="yes" class="btn btn-success" onclick="answer('yes')">Yes</button>
+            <button id="no" class="btn btn-danger" onclick="answer('no')">No</button>
+        </div>
+        <div id="result"></div>
+        
+        <!-- Analysis Section (Hidden until result is shown) -->
+        <div id="analysis-section" class="analysis-container">
+            <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">Summary</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="visuals-tab" data-bs-toggle="tab" data-bs-target="#visuals" type="button" role="tab">Income Visuals</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="predictions-tab" data-bs-toggle="tab" data-bs-target="#predictions" type="button" role="tab">Future Predictions</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab" data-bs-target="#recommendations" type="button" role="tab">Recommendations</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="analysisTabContent">
+                <!-- Summary Tab -->
+                <div class="tab-content fade show active" id="summary" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Income Analysis Summary</h5>
+                            <div id="summary-content"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Income Bracket</h5>
+                                    <div id="income-bracket-chart-container" class="chart-container">
+                                        <canvas id="income-bracket-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">Comparison to National Average</h5>
+                                    <div id="comparison-chart-container" class="chart-container">
+                                        <canvas id="comparison-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visuals Tab -->
+                <div class="tab-content fade" id="visuals" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Income Distribution</h5>
+                            <div id="income-distribution-chart-container" class="chart-container">
+                                <canvas id="income-distribution-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Income by Demographics</h5>
+                            <div id="demographics-chart-container" class="chart-container">
+                                <canvas id="demographics-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Predictions Tab -->
+                <div class="tab-content fade" id="predictions" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">5-Year Income Projection</h5>
+                            <div id="projection-chart-container" class="chart-container">
+                                <canvas id="projection-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="prediction-items">
+                        <!-- Prediction items will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Recommendations Tab -->
+                <div class="tab-content fade" id="recommendations" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Financial Recommendations</h5>
+                            <div id="recommendations-list">
+                                <!-- Recommendations will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Investment Suggestions</h5>
+                            <div id="investment-chart-container" class="chart-container">
+                                <canvas id="investment-chart"></canvas>
+                            </div>
+                            <div id="investment-suggestions">
+                                <!-- Investment suggestions will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="restart" class="btn btn-primary restart-btn" onclick="restartQuiz()">Start Again</button>
+    </div>
+
+    <!-- Bootstrap JS (for tabs functionality) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Decision Tree Data
+        const questions = [
+            { question: "Do you own a house in your name?", yes: 1, no: 2 },
+            { question: "Is the house fully paid off (no loan)?", yes: 19, no: 20 },
+            { question: "Do you own a car?", yes: 3, no: 4 },
+            { question: "Is your car less than 5 years old?", yes: 21, no: 22 },
+            { question: "Do you own a high-end smartphone?", yes: 5, no: 6 },
+            { question: "Is your smartphone a Samsung?", yes: 7, no: 8 },
+            { question: "Do you travel internationally?", yes: 9, no: 10 },
+            { question: "Which Samsung series do you own?", options: ["S Series", "A Series", "M Series", "F Series"], nextIndices: [11, 12, 13, 14] },
+            { question: "Which brand is your smartphone?", options: ["Apple", "OnePlus", "Google", "Other"], nextIndices: [15, 16, 17, 18] },
+            { result: "Estimated Income: ₹4,00,000 - ₹6,00,000", minIncome: 400000, maxIncome: 600000, category: "lower-middle" },
+            { result: "Estimated Income: ₹3,00,000 - ₹4,00,000", minIncome: 300000, maxIncome: 400000, category: "lower-middle" },
+            { result: "Estimated Income: ₹10,00,000+", minIncome: 1000000, maxIncome: 1500000, category: "upper-middle" }, // Samsung S Series
+            { result: "Estimated Income: ₹7,00,000 - ₹10,00,000", minIncome: 700000, maxIncome: 1000000, category: "upper-middle" }, // Samsung A Series
+            { result: "Estimated Income: ₹4,00,000 - ₹7,00,000", minIncome: 400000, maxIncome: 700000, category: "middle" }, // Samsung M Series
+            { result: "Estimated Income: ₹3,00,000 - ₹5,00,000", minIncome: 300000, maxIncome: 500000, category: "lower-middle" }, // Samsung F Series
+            { result: "Estimated Income: ₹15,00,000+", minIncome: 1500000, maxIncome: 2500000, category: "affluent" }, // Apple
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000", minIncome: 800000, maxIncome: 1200000, category: "upper-middle" }, // OnePlus
+            { result: "Estimated Income: ₹10,00,000 - ₹15,00,000", minIncome: 1000000, maxIncome: 1500000, category: "upper-middle" }, // Google
+            { result: "Estimated Income: ₹4,00,000 - ₹8,00,000", minIncome: 400000, maxIncome: 800000, category: "middle" }, // Other smartphone brands
+            { question: "In which city is your house located?", options: ["Metro City", "Tier 2 City", "Small Town", "Rural Area"], nextIndices: [23, 24, 25, 26] },
+            { question: "What is the outstanding amount on your home loan?", options: ["Above 50 Lakhs", "25-50 Lakhs", "10-25 Lakhs", "Below 10 Lakhs"], nextIndices: [27, 28, 29, 30] },
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000", minIncome: 800000, maxIncome: 1200000, category: "upper-middle" }, // New Car Owner
+            { result: "Estimated Income: ₹5,00,000 - ₹8,00,000", minIncome: 500000, maxIncome: 800000, category: "middle" }, // Older Car Owner
+            { result: "Estimated Income: ₹25,00,000+", minIncome: 2500000, maxIncome: 4000000, category: "affluent" }, // Paid house in metro
+            { result: "Estimated Income: ₹15,00,000 - ₹25,00,000", minIncome: 1500000, maxIncome: 2500000, category: "affluent" }, // Paid house in tier 2
+            { result: "Estimated Income: ₹8,00,000 - ₹15,00,000", minIncome: 800000, maxIncome: 1500000, category: "upper-middle" }, // Paid house in small town
+            { result: "Estimated Income: ₹5,00,000 - ₹8,00,000", minIncome: 500000, maxIncome: 800000, category: "middle" }, // Paid house in rural area
+            { result: "Estimated Income: ₹30,00,000+", minIncome: 3000000, maxIncome: 5000000, category: "affluent" }, // Home loan above 50 Lakhs
+            { result: "Estimated Income: ₹20,00,000 - ₹30,00,000", minIncome: 2000000, maxIncome: 3000000, category: "affluent" }, // Home loan 25-50 Lakhs
+            { result: "Estimated Income: ₹12,00,000 - ₹20,00,000", minIncome: 1200000, maxIncome: 2000000, category: "upper-middle" }, // Home loan 10-25 Lakhs
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000", minIncome: 800000, maxIncome: 1200000, category: "upper-middle" } // Home loan below 10 Lakhs
+        ];
+
+        let currentIndex = 0;
+        let progress = 0;
+        let resultData = null;
+
+        function displayQuestion() {
+            const questionData = questions[currentIndex];
+            const questionElement = document.getElementById('question');
+            const btnContainer = document.querySelector('.btn-container');
+
+            if (questionData.result) {
+                // Show result
+                questionElement.innerHTML = '';
+                document.getElementById('result').innerText = questionData.result;
+                resultData = questionData;
+                showAnalysisSection();
+                document.getElementById('restart').style.display = 'block';
+                return;
+            }
+
+            if (questionData.options) {
+                // Display options for multiple-choice questions
+                questionElement.innerHTML = questionData.question;
+                btnContainer.innerHTML = '';
+                questionData.options.forEach((option, i) => {
+                    const button = document.createElement('button');
+                    button.className = 'btn btn-primary';
+                    button.innerText = option;
+                    button.onclick = () => answer(questionData.nextIndices[i]);
+                    btnContainer.appendChild(button);
+                });
+            } else {
+                // Display yes/no question
+                questionElement.innerText = questionData.question;
+                btnContainer.innerHTML = `
+                    <button id="yes" class="btn btn-success" onclick="answer('yes')">Yes</button>
+                    <button id="no" class="btn btn-danger" onclick="answer('no')">No</button>
+                `;
+            }
+
+            // Update progress bar
+            progress += 10;
+            document.querySelector('.progress-bar').style.width = `${progress}%`;
+        }
+
+        function answer(response) {
+            const questionData = questions[currentIndex];
+            if (response === 'yes') {
+                currentIndex = questionData.yes;
+            } else if (response === 'no') {
+                currentIndex = questionData.no;
+            } else {
+                currentIndex = response; // For multiple-choice questions
+            }
+            displayQuestion();
+        }
+
+        function showAnalysisSection() {
+            const analysisSection = document.getElementById('analysis-section');
+            analysisSection.style.display = 'block';
+
+            // Populate summary
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = `
+                <p>Based on your responses, your income is estimated to be in the range of <strong>${resultData.minIncome.toLocaleString()} - ${resultData.maxIncome.toLocaleString()} INR</strong>.</p>
+                                <p>This places you in the <strong>${resultData.category}</strong> income bracket.</p>
+            `;
+
+            // Render charts
+            renderCharts();
+        }
+
+        function renderCharts() {
+            // Income Bracket Chart
+            const incomeBracketChartCtx = document.getElementById('income-bracket-chart').getContext('2d');
+            new Chart(incomeBracketChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Your Income Range'],
+                    datasets: [{
+                        data: [resultData.maxIncome],
+                        backgroundColor: ['#28a745']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Comparison Chart
+            const comparisonChartCtx = document.getElementById('comparison-chart').getContext('2d');
+            new Chart(comparisonChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Your Income', 'National Average'],
+                    datasets: [{
+                        label: 'Income (INR)',
+                        data: [resultData.maxIncome, 1500000], // Example national average
+                        backgroundColor: ['#28a745', '#007bff']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Income (INR)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Income Distribution Chart
+            const incomeDistributionChartCtx = document.getElementById('income-distribution-chart').getContext('2d');
+            new Chart(incomeDistributionChartCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2020', '2021', '2022', '2023', '2024'],
+                    datasets: [{
+                        label: 'Income Growth',
+                        data: [resultData.minIncome - 200000, resultData.minIncome - 100000, resultData.minIncome, resultData.maxIncome - 100000, resultData.maxIncome],
+                        borderColor: '#28a745',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Income (INR)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Demographics Chart
+            const demographicsChartCtx = document.getElementById('demographics-chart').getContext('2d');
+            new Chart(demographicsChartCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Metro City', 'Tier 2 City', 'Small Town', 'Rural Area'],
+                    datasets: [{
+                        data: [40, 30, 20, 10], // Example data
+                        backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // 5-Year Projection Chart
+            const projectionChartCtx = document.getElementById('projection-chart').getContext('2d');
+            new Chart(projectionChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2024', '2025', '2026', '2027', '2028'],
+                    datasets: [{
+                        label: 'Projected Income',
+                        data: [resultData.maxIncome, resultData.maxIncome + 200000, resultData.maxIncome + 400000, resultData.maxIncome + 600000, resultData.maxIncome + 800000],
+                        backgroundColor: '#28a745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Income (INR)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Investment Chart
+            const investmentChartCtx = document.getElementById('investment-chart').getContext('2d');
+            new Chart(investmentChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Stocks', 'Mutual Funds', 'Real Estate', 'Fixed Deposits'],
+                    datasets: [{
+                        data: [40, 30, 20, 10], // Example data
+                        backgroundColor: ['#28a745', '#007bff', '#ffc107', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Populate Predictions
+            const predictionItems = document.getElementById('prediction-items');
+            predictionItems.innerHTML = `
+                <div class="prediction-item">2024: ₹${(resultData.maxIncome).toLocaleString()}</div>
+                <div class="prediction-item">2025: ₹${(resultData.maxIncome + 200000).toLocaleString()}</div>
+                <div class="prediction-item">2026: ₹${(resultData.maxIncome + 400000).toLocaleString()}</div>
+                <div class="prediction-item">2027: ₹${(resultData.maxIncome + 600000).toLocaleString()}</div>
+                <div class="prediction-item">2028: ₹${(resultData.maxIncome + 800000).toLocaleString()}</div>
+            `;
+
+            // Populate Recommendations
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = `
+                <div class="recommendation">Consider investing in mutual funds for long-term growth.</div>
+                <div class="recommendation">Diversify your portfolio with real estate investments.</div>
+                <div class="recommendation">Allocate a portion of your income to fixed deposits for stability.</div>
+            `;
+
+            // Populate Investment Suggestions
+            const investmentSuggestions = document.getElementById('investment-suggestions');
+            investmentSuggestions.innerHTML = `
+                <div class="recommendation">Stocks: 40% of your portfolio</div>
+                <div class="recommendation">Mutual Funds: 30% of your portfolio</div>
+                <div class="recommendation">Real Estate: 20% of your portfolio</div>
+                <div class="recommendation">Fixed Deposits: 10% of your portfolio</div>
+            `;
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            progress = 0;
+            resultData = null;
+            document.getElementById('result').innerText = '';
+            document.getElementById('analysis-section').style.display = 'none';
+            document.getElementById('restart').style.display = 'none';
+            document.querySelector('.progress-bar').style.width = '0%';
+            displayQuestion();
+        }
+
+        // Initialize the quiz
+        displayQuestion();
+    </script>
+</body>
+</html>

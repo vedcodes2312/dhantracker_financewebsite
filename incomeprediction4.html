@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Predictor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            margin-top: 40px;
+        }
+        h2 {
+            color: #3a3a3a;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        #question {
+            font-size: 1.2em;
+            margin: 20px 0;
+            text-align: center;
+            color: #495057;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 30px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        #result {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+            color: #28a745;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .progress {
+            height: 10px;
+            margin-bottom: 20px;
+        }
+        .restart-btn {
+            display: none;
+            margin: 20px auto;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Income Predictor</h2>
+        <div class="progress">
+            <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div id="question"></div>
+        <div class="btn-container">
+            <button id="yes" class="btn btn-success" onclick="answer('yes')">Yes</button>
+            <button id="no" class="btn btn-danger" onclick="answer('no')">No</button>
+        </div>
+        <div id="result"></div>
+        <button id="restart" class="btn btn-primary restart-btn" onclick="restartQuiz()">Start Again</button>
+    </div>
+
+    <script>
+        // Decision Tree Data with smartphone brands and more realistic housing logic
+        const questions = [
+            { question: "Do you own a house in your name?", yes: 1, no: 2 },
+            { question: "Is the house fully paid off (no loan)?", yes: 19, no: 20 },
+            { question: "Do you own a car?", yes: 3, no: 4 },
+            { question: "Is your car less than 5 years old?", yes: 21, no: 22 },
+            { question: "Do you own a high-end smartphone?", yes: 5, no: 6 },
+            { question: "Is your smartphone a Samsung?", yes: 7, no: 8 },
+            { question: "Do you travel internationally?", yes: 9, no: 10 },
+            { question: "Which Samsung series do you own?", options: ["S Series", "A Series", "M Series", "F Series"], nextIndices: [11, 12, 13, 14] },
+            { question: "Which brand is your smartphone?", options: ["Apple", "OnePlus", "Google", "Other"], nextIndices: [15, 16, 17, 18] },
+            { result: "Estimated Income: ₹4,00,000 - ₹6,00,000 (With International Travel)" },
+            { result: "Estimated Income: ₹3,00,000 - ₹4,00,000" },
+            { result: "Estimated Income: ₹10,00,000+" }, // Samsung S Series
+            { result: "Estimated Income: ₹7,00,000 - ₹10,00,000" }, // Samsung A Series
+            { result: "Estimated Income: ₹4,00,000 - ₹7,00,000" }, // Samsung M Series
+            { result: "Estimated Income: ₹3,00,000 - ₹5,00,000" }, // Samsung F Series
+            { result: "Estimated Income: ₹15,00,000+" }, // Apple
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000" }, // OnePlus
+            { result: "Estimated Income: ₹10,00,000 - ₹15,00,000" }, // Google
+            { result: "Estimated Income: ₹4,00,000 - ₹8,00,000" }, // Other smartphone brands
+            { question: "In which city is your house located?", options: ["Metro City", "Tier 2 City", "Small Town", "Rural Area"], nextIndices: [23, 24, 25, 26] },
+            { question: "What is the outstanding amount on your home loan?", options: ["Above 50 Lakhs", "25-50 Lakhs", "10-25 Lakhs", "Below 10 Lakhs"], nextIndices: [27, 28, 29, 30] },
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000 (New Car Owner)" },
+            { result: "Estimated Income: ₹5,00,000 - ₹8,00,000 (Older Car Owner)" },
+            { result: "Estimated Income: ₹25,00,000+" }, // Paid house in metro
+            { result: "Estimated Income: ₹15,00,000 - ₹25,00,000" }, // Paid house in tier 2
+            { result: "Estimated Income: ₹8,00,000 - ₹15,00,000" }, // Paid house in small town
+            { result: "Estimated Income: ₹5,00,000 - ₹8,00,000" }, // Paid house in rural area
+            { result: "Estimated Income: ₹30,00,000+" }, // Big home loan
+            { result: "Estimated Income: ₹20,00,000 - ₹30,00,000" }, // Medium-large home loan
+            { result: "Estimated Income: ₹12,00,000 - ₹20,00,000" }, // Medium home loan
+            { result: "Estimated Income: ₹8,00,000 - ₹12,00,000" } // Small home loan
+        ];
+
+        let currentQuestionIndex = 0;
+        let totalQuestions = 0;
+        
+        // Count non-result questions for progress bar
+        function countQuestions() {
+            let count = 0;
+            for (let i = 0; i < questions.length; i++) {
+                if (!questions[i].result) {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        function askQuestion() {
+            const questionBox = document.getElementById("question");
+            const yesBtn = document.getElementById("yes");
+            const noBtn = document.getElementById("no");
+            const resultBox = document.getElementById("result");
+            const restartBtn = document.getElementById("restart");
+            const btnContainer = document.querySelector(".btn-container");
+            
+            let current = questions[currentQuestionIndex];
+            
+            // Update progress bar
+            if (!current.result) {
+                const questionCount = countQuestions();
+                const answeredCount = calculateAnsweredQuestions();
+                const progressPercentage = (answeredCount / questionCount) * 100;
+                document.querySelector(".progress-bar").style.width = `${progressPercentage}%`;
+            }
+            
+            if (current.result) {
+                // Show result
+                questionBox.style.display = "none";
+                btnContainer.style.display = "none";
+                resultBox.innerHTML = current.result;
+                restartBtn.style.display = "block";
+                document.querySelector(".progress-bar").style.width = "100%";
+                return;
+            }
+            
+            // Display question
+            questionBox.innerHTML = current.question;
+            
+            // Check if this is an options question
+            if (current.options) {
+                // Clear previous buttons
+                btnContainer.innerHTML = "";
+                
+                // Create buttons for each option
+                current.options.forEach((option, index) => {
+                    const btn = document.createElement("button");
+                    btn.className = "btn btn-primary";
+                    btn.textContent = option;
+                    btn.onclick = function() {
+                        currentQuestionIndex = current.nextIndices[index];
+                        askQuestion();
+                    };
+                    btnContainer.appendChild(btn);
+                });
+            } else {
+                // Restore Yes/No buttons
+                btnContainer.innerHTML = `
+                    <button id="yes" class="btn btn-success" onclick="answer('yes')">Yes</button>
+                    <button id="no" class="btn btn-danger" onclick="answer('no')">No</button>
+                `;
+            }
+        }
+
+        function answer(choice) {
+            let current = questions[currentQuestionIndex];
+            if (choice === "yes") {
+                currentQuestionIndex = current.yes;
+            } else {
+                currentQuestionIndex = current.no;
+            }
+            askQuestion();
+        }
+
+        function calculateAnsweredQuestions() {
+            // This is a simple implementation - in a real app you'd track actual path
+            let count = 0;
+            let idx = 0;
+            while (idx < currentQuestionIndex) {
+                if (!questions[idx].result) {
+                    count++;
+                }
+                idx++;
+            }
+            return count;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            document.getElementById("question").style.display = "flex";
+            document.querySelector(".btn-container").style.display = "flex";
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("restart").style.display = "none";
+            document.querySelector(".progress-bar").style.width = "0%";
+            askQuestion();
+        }
+
+        window.onload = askQuestion;
+    </script>
