@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan & Debt Tracker (INR)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, button {
+            padding: 8px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .breakdown {
+            margin: 10px 0;
+        }
+        .extra-payment {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Loan & Debt Tracker (INR)</h2>
+        
+        <div class="input-group">
+            <label>Loan Amount (₹):</label>
+            <input type="number" id="loanAmount" placeholder="Enter amount in INR">
+        </div>
+        
+        <div class="input-group">
+            <label>Interest Rate (%):</label>
+            <input type="number" id="interestRate" step="0.1" placeholder="Annual rate">
+        </div>
+        
+        <div class="input-group">
+            <label>Loan Term (months):</label>
+            <input type="number" id="loanTerm" placeholder="Number of months">
+        </div>
+        
+        <div class="input-group">
+            <label>Repayment Strategy:</label>
+            <select id="strategy">
+                <option value="avalanche">Debt Avalanche (Highest Interest First)</option>
+                <option value="snowball">Debt Snowball (Smallest Balance First)</option>
+            </select>
+        </div>
+        
+        <button onclick="calculateLoan()">Calculate</button>
+        
+        <div id="results"></div>
+        
+        <div class="extra-payment" id="extraPaymentSection" style="display: none;">
+            <h4>Extra Payment Calculator</h4>
+            <div class="input-group">
+                <label>Extra Payment Amount (₹):</label>
+                <input type="number" id="extraPayment" placeholder="Enter extra amount">
+                <button onclick="calculateExtraPayment()">Calculate Impact</button>
+            </div>
+            <div id="extraResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let originalData = {};
+
+        function calculateLoan() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 / 12;
+            const loanTerm = parseInt(document.getElementById('loanTerm').value);
+            const strategy = document.getElementById('strategy').value;
+
+            if (!loanAmount || !interestRate || !loanTerm) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const emi = calculateEMI(loanAmount, interestRate, loanTerm);
+            const totalPayment = emi * loanTerm;
+            const totalInterest = totalPayment - loanAmount;
+            const schedule = generateSchedule(loanAmount, interestRate, emi, loanTerm);
+
+            originalData = {
+                loanAmount,
+                interestRate,
+                loanTerm,
+                emi,
+                schedule
+            };
+
+            displayResults(emi, totalInterest, schedule, strategy);
+            document.getElementById('extraPaymentSection').style.display = 'block';
+        }
+
+        function calculateEMI(principal, monthlyRate, months) {
+            const power = Math.pow(1 + monthlyRate, months);
+            return (principal * monthlyRate * power) / (power - 1);
+        }
+
+        function generateSchedule(principal, rate, emi, months) {
+            let balance = principal;
+            const schedule = [];
+            
+            for (let i = 1; i <= months && balance > 0; i++) {
+                const interest = balance * rate;
+                const principalPayment = emi - interest;
+                balance -= principalPayment;
+                
+                if (balance < 0) balance = 0;
+                
+                schedule.push({
+                    month: i,
+                    payment: emi,
+                    principal: principalPayment,
+                    interest: interest,
+                    balance: balance
+                });
+            }
+            return schedule;
+        }
+
+        function formatINR(number) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                minimumFractionDigits: 2
+            }).format(number);
+        }
+
+        function displayResults(emi, totalInterest, schedule, strategy) {
+            const resultsDiv = document.getElementById('results');
+            let html = `
+                <h3>Original Loan Results</h3>
+                <p>Monthly EMI: ${formatINR(emi)}</p>
+                <p>Total Interest: ${formatINR(totalInterest)}</p>
+                <p>Repayment Strategy: ${strategy === 'avalanche' ? 'Debt Avalanche' : 'Debt Snowball'}</p>
+                
+                <h4>Payment Schedule</h4>
+                <div class="breakdown">
+                    <strong>Next Payment Due: ${getNextDueDate()}</strong>
+                </div>
+            `;
+
+            html += '<h4>Payment Breakdown</h4>';
+            schedule.forEach(payment => {
+                html += `
+                    <div class="breakdown">
+                        Month ${payment.month}: 
+                        Total: ${formatINR(payment.payment)} 
+                        (Principal: ${formatINR(payment.principal)}, 
+                        Interest: ${formatINR(payment.interest)}, 
+                        Remaining: ${formatINR(payment.balance)})
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function calculateExtraPayment() {
+            const extraAmount = parseFloat(document.getElementById('extraPayment').value);
+            if (!extraAmount || extraAmount <= 0) {
+                alert('Please enter a valid extra payment amount');
+                return;
+            }
+
+            const remainingBalance = originalData.schedule[originalData.schedule.length - 1].balance;
+            const newPrincipal = originalData.loanAmount - extraAmount;
+            if (newPrincipal <= 0) {
+                document.getElementById('extraResults').innerHTML = 'Extra payment will clear the loan completely!';
+                return;
+            }
+
+            const newEMI = calculateEMI(newPrincipal, originalData.interestRate, originalData.loanTerm);
+            const newSchedule = generateSchedule(newPrincipal, originalData.interestRate, newEMI, originalData.loanTerm);
+            const newTotalPayment = newEMI * originalData.loanTerm;
+            const newTotalInterest = newTotalPayment - newPrincipal;
+
+            let html = `
+                <h4>After Extra Payment of ${formatINR(extraAmount)}</h4>
+                <p>New Monthly EMI: ${formatINR(newEMI)}</p>
+                <p>New Total Interest: ${formatINR(newTotalInterest)}</p>
+                <p>Savings in Interest: ${formatINR(originalData.emi * originalData.loanTerm - originalData.loanAmount - newTotalInterest)}</p>
+                <p>New Remaining Balance: ${formatINR(newPrincipal)}</p>
+            `;
+
+            document.getElementById('extraResults').innerHTML = html;
+        }
+
+        function getNextDueDate() {
+            const today = new Date();
+            const nextMonth = new Date(today.setMonth(today.getMonth() + 1));
+            return nextMonth.toLocaleDateString('en-IN');
+        }
+    </script>
+</body>
+</html>
