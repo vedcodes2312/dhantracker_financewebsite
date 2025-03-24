@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood-Based Spending & Cost of Living</title>
+    <link rel="stylesheet" href="moodStyles.css">
+</head>
+<body>
+
+    <h1>EmoSpend Insights</h1>
+
+    <!-- Mood-Based Spending Tracker -->
+    <section id="mood-section">
+        <h2>Track Your Mood & Spending</h2>
+        <label for="mood">How do you feel today?</label>
+        <select id="mood">
+            <option value="happy">Happy 😊</option>
+            <option value="stressed">Stressed 😟</option>
+            <option value="bored">Bored 😑</option>
+            <option value="excited">Excited 🤩</option>
+        </select>
+        <button onclick="trackMoodSpending()">Log Mood & Spending</button>
+        <div id="mood-output"></div>
+    </section>
+
+    <!-- Local Cost of Living Adjustment -->
+    <section id="cost-section">
+        <h2>Cost of Living Adjustment</h2>
+        <label for="city">Select Your City:</label>
+        <select id="city">
+            <option value="Mumbai">Mumbai</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Chennai">Chennai</option>
+        </select>
+        <button onclick="adjustBudget()">Adjust Budget</button>
+        <div id="cost-output"></div>
+    </section>
+    <!-- Spending Tracker Section -->
+<section id="spending-section">
+    <h2>Track Your Spending</h2>
+    <label for="expense">Enter Expense Amount (₹):</label>
+    <input type="number" id="expense" min="0">
+    <button onclick="trackSpending()">Add Expense</button>
+    <div id="spending-output"></div>
+</section>
+
+<script src="spendingTracker.js"></script>
+<script src="moodTracking.js"></script>
+<script src="costOfLiving.js"></script>
+ <script src="aiSuggestions.js"></script>
+
+</body>
+</html>
