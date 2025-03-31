@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DhanTracker</title>
+  <link rel="stylesheet" href="homepagecss.css">
+  <script type="module" src="https://unpkg.com/@splinetool/viewer@1.0.0/build/spline-viewer.js"></script>
+
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .chat-box { position: fixed; bottom: 70px; right: 20px; width: 280px; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: none; }
+        .chat-head { background: #007bff; color: #fff; padding: 10px; border-radius: 10px 10px 0 0; }
+        .chat-body { height: 250px; overflow-y: auto; padding: 10px; }
+        .chat-foot { padding: 10px; border-top: 1px solid #ddd; }
+    </style> -->
+
+<!-- internal css for chatbot-->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .chat-box { position: fixed; bottom: 70px; right: 20px; width: 280px; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); display: none; }
+        .chat-head { background: #007bff; color: #fff; padding: 10px; border-radius: 10px 10px 0 0; }
+        .chat-body { height: 250px; overflow-y: auto; padding: 10px; }
+        .chat-foot { padding: 10px; border-top: 1px solid #ddd; }
+        .chat-btn { position: fixed; bottom: 20px; right: 20px; background: #007bff; color: #fff; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+  <!-- <div class="chat-box">
+    <div class="chat-head">Chat</div>
+    <div class="chat-body"><p>Hello! How can I help?</p></div>
+    <div class="chat-foot"><input type="text" class="form-control" placeholder="Type..." ></div>
+</div>
+<script>
+         $(document).ready(function() {
+            $("#chat-btn").click(function() {
+                $(".chat-box").toggle();
+            });
+        });
+</script> -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <div class="chatbot-container">
+    <button class="chatbot-button" onclick="toggleChat()">💬 Chat</button>
+    <div class="chat-popup" id="chatPopup">
+      <div class="chat-header">AI Chatbot</div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-footer">
+        <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // function toggleChat() {
+    //     var chatPopup = document.getElementById("chatPopup");
+    //     chatPopup.style.display = chatPopup.style.display === "block" ? "none" : "block";
+    // }
+    function toggleChat() {
+    var chatPopup = document.getElementById("chatPopup");
+    if (chatPopup.style.display === "none" || chatPopup.style.display === "") {
+        chatPopup.style.display = "block";
+        localStorage.setItem("chatOpen", "true"); // Save state
+    } else {
+        chatPopup.style.display = "none";
+        localStorage.setItem("chatOpen", "false"); // Save state
+    }
+}
+
+// Ensure chatbot visibility state is maintained after page reload
+window.onload = function () {
+    var chatPopup = document.getElementById("chatPopup");
+    if (localStorage.getItem("chatOpen") === "true") {
+        chatPopup.style.display = "block";
+    }
+};
+
+
+    function sendMessage() {
+        var chatInput = document.getElementById("chatInput");
+        var chatBody = document.getElementById("chatBody");
+        var userMessage = chatInput.value.trim();
+        if (userMessage === "") return;
+
+        var userBubble = `<div style='text-align: right; margin: 5px;'><strong>You:</strong> ${userMessage}</div>`;
+        chatBody.innerHTML += userBubble;
+        chatInput.value = "";
+        chatBody.scrollTop = chatBody.scrollHeight;
+
+        setTimeout(() => {
+            var botResponse = getBotResponse(userMessage);
+            var botBubble = `<div style='text-align: left; margin: 5px;'><strong>Bot:</strong> ${botResponse}</div>`;
+            chatBody.innerHTML += botBubble;
+            chatBody.lastChild.scrollIntoView({ behavior: "smooth" });
+        }, 1000);
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    }
+
+    function getBotResponse(userMessage) {
+        userMessage = userMessage.toLowerCase();
+        
+        const responses = [
+            { keywords: ["hello", "hi"], response: "Hello! How can I assist you?" },
+            { keywords: ["how are you"], response: "I'm just a bot, but I'm doing great!" },
+            { keywords: ["bye"], response: "Goodbye! Have a great day!" }
+        ];
+
+        for (let item of responses) {
+            if (item.keywords.some(keyword => userMessage.includes(keyword))) {
+                return item.response;
+            }
+        }
+
+        return "Sorry, I didn't understand that.";
+    }
+  </script>
+  
+<!-- <nav class="navbar navbar-expand-lg navbar-light bg-light"> -->
+<nav class="navbar navbar-expand-lg navbar-light bg-dark">
+    <a href="C:\Users\Ved\OneDrive\Desktop\myfolder\tinkering mentoring\loginpageproject\index.html">Sign Up</a>
+    <a href="test4.html">Click here to track your budget</a>
+    <a href="gyankoshdemo.html">Gyan Kosh - Learn Finance</a>
+    <a href="loantracker.html">Loan Analysis</a>
+    <a href="multiplesourcehtml.html">Multiverse</a>
+    <a href="finsage_ai_html.html">ImpactVest </a>
+    <a href="moodSpending.html">EmoSpend </a>
+    <a href="investmentSchemes.html">GyanKosh 2.0 </a>
+
+    <!-- <div class="container-fluid">
+      <a class="navbar-brand" href="#"><p style="color: white;">DhanAI</p></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                  <button class="btn btn-primary" id="chat-btn">💬</button>
+              </li>
+          </ul>
+      </div> 
+      </div> -->
+
+
+      <!-- ChatBot PopUp-->
+
+
+      <button class="chat-btn">💬</button>  <!-- FINSAGE AI = FINANCE + WISDOM-->
+    <div class="chat-box">
+        <div class="chat-head">Chat with FinSage AI</div>
+        <div class="chat-body"><p>Hello! How can I help?</p></div>
+        <div class="chat-foot"><input type="text" class="form-control" placeholder="Type..." ></div>
+    </div>
+    <script>
+        $(".chat-btn").click(() => $(".chat-box").toggle());
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </div>
+
+  </nav>
+
+  <main>
+    <spline-viewer url="https://prod.spline.design/q53rYmRKEvn4ZxIK/scene.splinecode"></spline-viewer>
+  </main>
+  
+  <div class="content">
+    <h1 style="font-size: 10em;">धनTracker</h1>
+    <p style="font-size: 3.2em;"> Personal Finance Budget Tracker</p>
+    </div>
+</body>
+</html>
